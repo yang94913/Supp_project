@@ -1,0 +1,217 @@
+﻿{#送货管理-新增#}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"/>
+    <title>送货管理-新增</title>
+    <link rel="stylesheet" type="text/css" href="../static/admin/layui/css/layui.css"/>
+    <link rel="stylesheet" type="text/css" href="../static/admin/css/admin.css"/>
+</head>
+<style>
+    .layui-input-block {
+        width: 500px
+    }
+
+    h3 {
+        height: 40px;
+        line-height: 40px;
+        padding-left: 40px
+    }
+
+    #table-list-detail {
+        margin-left: 40px
+    }
+
+    .goback {
+        position: absolute;
+        right: 10px;
+        top: 20px;
+        padding: 9px 10px;
+        width: 30px;
+        height: 12px;
+        line-height: 12px;
+        text-align: center;
+        border-radius: 2px;
+        border: 1px solid #ccc;
+        cursor: pointer;
+        z-index: 99;
+    }
+</style>
+<body>
+<div class="wrap-container">
+    <div class="goback">返回</div>
+    <form class="layui-form" lay-filter="menuAdd" style="width: 90%;padding-top: 20px;">
+        <div class="layui-form-item">
+            <label class="layui-form-label">采购单号：</label>
+            <div class="layui-input-block">
+                <select name="buy_id" lay-filter="buy_id" id="buy_id">
+                    <option value='' disabled selected>请选择</option>
+                    {% for menu in menu1 %}
+                        <option value='{{menu.0}}'>{{ menu.0 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">库房名称：</label>
+            <div class="layui-input-block">
+                <input type="text" name="warehouse_name" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">送货人：</label>
+            <div class="layui-input-block">
+                <input type="text" name="deliverer" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">送货时间：</label>
+            <div class="layui-input-block">
+                <input type="text" name="delivery_time" class="layui-input" id="test6">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">联系方法：</label>
+            <div class="layui-input-block">
+                <input type="text" name="phone" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">摘要：</label>
+            <div class="layui-input-block">
+                <input type="text" name="memo" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <h3>送货单列表</h3>
+        <div class="layui-form" id="table-list-detail">
+            <table class="layui-hide" id="detail" lay-filter="demo"></table>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <span class="layui-btn layui-btn-normal" lay-submit lay-filter="formDemo"
+                      id="testListAction">立即提交</span>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="../static/admin/layui/layui.js" type="text/javascript" charset="utf-8"></script>
+<script src="../static/admin/js/js.cookie.min.js" type="text/javascript" charset="utf-8"></script>
+
+<script>
+    //Demo
+    layui.use(['jquery', 'laydate', 'form', 'table'], function () {
+        var $ = layui.jquery;
+        var laydate = layui.laydate;
+        var form = layui.form;
+        var table = layui.table;
+        laydate.render({
+            elem: '#test6'
+        });
+        $('.goback').click(function () {
+            window.history.go(-1)
+        });
+
+        $.ajax({
+            type: 'post',
+            url: 'http://192.168.40.141:8884/menu1_dd/',
+            datatype: 'json',
+            success: function (res) {
+                console.log('res', res);
+                if (res.code === 0) {
+                    var selectHtml = '<option value=""></option>';
+                    for (var i = 0; i < res.data.length; i++) {
+                        selectHtml += '<option value=' + res.data[i].buy_id + '>' + res.data[i].buy_id + '</option>'
+                    }
+                    $('#buy_id').html(selectHtml);
+                    form.render('select');
+                }
+            }
+        });
+        form.on('select(buy_id)', function (data) {
+            console.log(data.value); //得到被选中的值
+            table.render({
+                elem: '#detail'
+                , url: 'cgmx_info/?buy_id=' + data.value
+                , width: 1080
+                , height: 312
+                , parseData: function (res) { //res 即为原始返回的数据
+                    return {
+                        "code": 0, //解析接口状态
+                        "msg": '', //解析提示文本
+//                      "count": res.count, //解析数据长度
+{#                        "data": JSON.parse(detailData1.detailed)//解析数据列表#}
+                        "data": res.data
+                    };
+                }
+                , cols: [[
+                      {field: 'buy_no', width: 80, title: '序号', align: 'center'}
+                    , {field: 'exp_code', width: 135, title: '物品编码', align: 'center'}
+                    , {field: 'exp_name', width: 135, title: '物品名称', align: 'center'}
+                    , {field: 'exp_spec', width: 80, title: '规格', align: 'center'}
+                    , {field: 'units', width: 60, title: '单位', align: 'center'}
+                    , {field: 'exp_from', width: 80, title: '类型', align: 'center'}
+                    , {field: 'want_number', width: 80, title: '采购数量', align: 'center', edit: 'text'}
+                    , {field: 'pack_spec', width: 80, title: '包装规格', align: 'center'}
+                    , {field: 'pack_unit', width: 70, title: '包装单位', align: 'center'}
+                    , {field: 'firm_id', width: 100, title: '生产厂家', align: 'center'}
+                    , {field: 'purchase_price', width: 80, title: '购买价格', align: 'center'}
+                    , {field: 'stock_supplier', width: 100, title: '供应商', align: 'center'}
+                ]]
+            });
+            form.render();
+        });
+        form.on('submit(formDemo)', function (data) {
+            console.log(data.field); //当前容器的全部表单字段，名值对形式：{name: value}
+            var code = sessionStorage.getItem('supplier_code');
+            data.field.supplier_code = code;
+            var myDataTable = table.cache.detail; //从采购单拉去的数据
+            var detailed = [];// 这个数组数据是要往你自己新建的数据表写入的数据
+            myDataTable.forEach(function (ele) { // 转化为自己数据的过程
+                detailed.push({
+                    ITEM_NO: ele.buy_no,  // 序号
+                    EXP_CODE: ele.exp_code, // 物品编码
+                    EXP_NAME: ele.exp_name, // 物品名称
+                    SPEC: ele.exp_spec, //规格
+                    UNIT: ele.units,// 单位
+                    PURCHASE_QUANTITY: ele.want_number, // 采购数量
+                    PRODUCTION_MANU: ele.firm_id // 生产厂家
+
+                })
+            });
+            data.field.detailed = JSON.stringify(detailed);
+            console.log('data.field', data.field);
+//            table.cache.detail是当前修改完后的数据，要存到你自己的明细表里
+            $.ajax({
+                type: 'post',
+                url: 'menu_add_info/',
+                data: data.field,
+                datatype: 'json',
+{#                beforeSend: function (request) {#}
+{#                    request.setRequestHeader("token", Cookies.get('username'));#}
+{#                },#}
+                success: function (res) {
+                    console.log('res', res);
+                    if (res.result === 0) {
+                        layer.msg(res.msg);
+                        setTimeout(function () {
+                            window.history.go(-1);
+{#                            layer.close(layer.index);#}
+{#                            window.parent.location.reload();#}
+                        }, 1000)
+                    }
+                }
+            });
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        });
+    });
+
+</script>
+</body>
+
+</html>
